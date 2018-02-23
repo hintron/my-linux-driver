@@ -53,9 +53,9 @@ static short  size_of_message;
 // Counts the number of times the device is opened
 static int    numberOpens = 0;
 // The device-driver class struct pointer
-static struct class*  ebbcharClass  = NULL;
+static struct class*  mgh_class  = NULL;
 // The device-driver device struct pointer
-static struct device* ebbcharDevice = NULL;
+static struct device* mgh_device = NULL;
 
 // The prototype functions for the character driver -- must come before the struct definition
 static int     dev_open(struct inode *, struct file *);
@@ -83,7 +83,7 @@ static struct file_operations fops =
  *  @return returns 0 if successful
  */
 static int __init my_linux_driver_init(void){
-    printk(KERN_INFO "MGH: Initializing the my_linux_driver LKM\n");
+    printk(KERN_INFO "MGH: Initializing the my_linux_driver_2 LKM\n");
 
     // Try to dynamically allocate a major number for the device -- more difficult but worth it
     majorNumber = register_chrdev(0, DEVICE_NAME, &fops);
@@ -94,21 +94,21 @@ static int __init my_linux_driver_init(void){
     printk(KERN_INFO "MGH: registered correctly with major number %d\n", majorNumber);
 
     // Register the device class
-    ebbcharClass = class_create(THIS_MODULE, CLASS_NAME);
-        if (IS_ERR(ebbcharClass)){                // Check for error and clean up if there is
+    mgh_class = class_create(THIS_MODULE, CLASS_NAME);
+        if (IS_ERR(mgh_class)){                // Check for error and clean up if there is
         unregister_chrdev(majorNumber, DEVICE_NAME);
         printk(KERN_ALERT "Failed to register device class\n");
-        return PTR_ERR(ebbcharClass);          // Correct way to return an error on a pointer
+        return PTR_ERR(mgh_class);          // Correct way to return an error on a pointer
     }
     printk(KERN_INFO "MGH: device class registered correctly\n");
 
     // Register the device driver
-    ebbcharDevice = device_create(ebbcharClass, NULL, MKDEV(majorNumber, 0), NULL, DEVICE_NAME);
-    if (IS_ERR(ebbcharDevice)){               // Clean up if there is an error
-        class_destroy(ebbcharClass);           // Repeated code but the alternative is goto statements
+    mgh_device = device_create(mgh_class, NULL, MKDEV(majorNumber, 0), NULL, DEVICE_NAME);
+    if (IS_ERR(mgh_device)){               // Clean up if there is an error
+        class_destroy(mgh_class);           // Repeated code but the alternative is goto statements
         unregister_chrdev(majorNumber, DEVICE_NAME);
         printk(KERN_ALERT "Failed to create the device\n");
-        return PTR_ERR(ebbcharDevice);
+        return PTR_ERR(mgh_device);
     }
     printk(KERN_INFO "MGH: device class created correctly\n");
     // Made it! device was initialized
@@ -122,7 +122,7 @@ static int __init my_linux_driver_init(void){
  */
 static int dev_open(struct inode *inodep, struct file *filep){
    numberOpens++;
-   printk(KERN_INFO "EBBChar: Device has been opened %d time(s)\n", numberOpens);
+   printk(KERN_INFO "MGH: Device has been opened %d time(s)\n", numberOpens);
    return 0;
 }
 
@@ -140,11 +140,11 @@ static ssize_t dev_read(struct file *filep, char *buffer, size_t len, loff_t *of
    error_count = copy_to_user(buffer, message, size_of_message);
 
    if (error_count==0){            // if true then have success
-      printk(KERN_INFO "EBBChar: Sent %d characters to the user\n", size_of_message);
+      printk(KERN_INFO "MGH: Sent %d characters to the user\n", size_of_message);
       return (size_of_message=0);  // clear the position to the start and return 0
    }
    else {
-      printk(KERN_INFO "EBBChar: Failed to send %d characters to the user\n", error_count);
+      printk(KERN_INFO "MGH: Failed to send %d characters to the user\n", error_count);
       return -EFAULT;              // Failed -- return a bad address message (i.e. -14)
    }
 }
@@ -161,7 +161,7 @@ static ssize_t dev_read(struct file *filep, char *buffer, size_t len, loff_t *of
 static ssize_t dev_write(struct file *filep, const char *buffer, size_t len, loff_t *offset){
     sprintf(message, "%s(%zu letters)", buffer, len);   // appending received string with its length
     size_of_message = strlen(message);                 // store the length of the stored message
-    printk(KERN_INFO "EBBChar: Received %zu characters from the user\n", len);
+    printk(KERN_INFO "MGH: Received %zu characters from the user\n", len);
     return len;
 }
 
@@ -171,7 +171,7 @@ static ssize_t dev_write(struct file *filep, const char *buffer, size_t len, lof
  *  @param filep A pointer to a file object (defined in linux/fs.h)
  */
 static int dev_release(struct inode *inodep, struct file *filep){
-    printk(KERN_INFO "EBBChar: Device successfully closed\n");
+    printk(KERN_INFO "MGH: Device successfully closed\n");
     return 0;
 }
 
@@ -182,11 +182,11 @@ static int dev_release(struct inode *inodep, struct file *filep){
  *  code is used for a built-in driver (not a LKM) that this function is not required.
  */
 static void __exit my_linux_driver_exit(void){
-   device_destroy(ebbcharClass, MKDEV(majorNumber, 0));     // remove the device
-   class_unregister(ebbcharClass);                          // unregister the device class
-   class_destroy(ebbcharClass);                             // remove the device class
+   device_destroy(mgh_class, MKDEV(majorNumber, 0));     // remove the device
+   class_unregister(mgh_class);                          // unregister the device class
+   class_destroy(mgh_class);                             // remove the device class
    unregister_chrdev(majorNumber, DEVICE_NAME);             // unregister the major number
-   printk(KERN_INFO "MGH: Goodbye from my_linux_driver!\n");
+   printk(KERN_INFO "MGH: Goodbye from my_linux_driver_2!\n");
 }
 
 /** @brief A module must use the module_init() module_exit() macros from linux/init.h, which
