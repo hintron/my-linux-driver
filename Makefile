@@ -1,4 +1,5 @@
 # See http://derekmolloy.ie/writing-a-linux-kernel-module-part-1-introduction/
+# NOTE: The linux kernel build system expects Makefule to be capitalized!
 
 obj-m+=my_linux_driver.o
 
