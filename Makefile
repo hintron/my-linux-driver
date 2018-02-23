@@ -9,6 +9,7 @@ obj-m+=$(DRIVER_NAME).o
 
 all:
 	make -C /lib/modules/$(shell uname -r)/build/ M=$(PWD) modules
+	$(CC) test_2.c -o test_2
 	# make -C /lib/modules/$(shell uname -r)/build/ M=$(PWD) modules_install
 clean:
 	make -C /lib/modules/$(shell uname -r)/build/ M=$(PWD) clean
